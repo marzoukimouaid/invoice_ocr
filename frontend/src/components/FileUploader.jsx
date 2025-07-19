@@ -10,6 +10,11 @@ const FileUploader = ({type}) => {
   const [errors, setErrors] = useState('');
   const [img, setImage] = useState();
 
+  function handleInstructionChange(e) {
+
+    setCustomInstructions(e.target.value)
+  }
+
   useEffect(() => {
     setIsFetching(false);
     setFetchedData();
@@ -47,6 +52,7 @@ const FileUploader = ({type}) => {
 
 
   function handleSubmit(e) {
+    setFetchedData();
     e.preventDefault();
     if(!img) {
       setErrors("Please Select An Image")
@@ -97,7 +103,7 @@ const FileUploader = ({type}) => {
               </label>
               <textarea
                   id="instructions"
-
+                  onChange={handleInstructionChange}
                   rows="5"
                   placeholder="e.g., Only extract dates and totals."
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-red-400"

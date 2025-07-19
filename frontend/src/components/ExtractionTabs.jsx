@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import FileUploader from "./FileUploader";
-import LlmForm from "./LlmForm";
 const ExtractionTabs = () => {
   const [activeTab, setActiveTab] = useState('tesseract');
 

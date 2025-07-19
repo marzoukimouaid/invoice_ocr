@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from fastapi import FastAPI, File, UploadFile
+from pdf2image import convert_from_bytes
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from tesseract_based_ocr.tesseract_ocr import tesseract_ocr
 from llm_based_ocr.llm_ocr import llm_ocr
@@ -30,37 +30,52 @@ app.add_middleware(
 
 @app.post("/tesseract/extract")
 async def extract_data_tesseract(file: UploadFile = File(...)):
-    file.filename = f"{uuid.uuid4()}.jpg"
     contents = await file.read()
+    file_ext = file.filename.split('.')[-1].lower()
+    result = {}
 
-    # Save uploaded image
-    file_path = os.path.join(IMAGEDIR, file.filename)
-    with open(file_path, "wb") as f:
-        f.write(contents)
+    if file_ext == 'pdf':
 
-    # Perform OCR
-    result = tesseract_ocr(file_path)
+        images = convert_from_bytes(contents)
+        for i, img in enumerate(images):
+            image_path = os.path.join(IMAGEDIR, f"{uuid.uuid4()}.jpg")
+            img.save(image_path, "JPEG")
+            ocr_result = tesseract_ocr(image_path)
+            result[f"page{i}"] = ocr_result
+            os.remove(image_path)
 
-    # Delete Image
-    os.remove(file_path)
+    else:
+        image_path = os.path.join(IMAGEDIR, f"{uuid.uuid4()}.jpg")
+        with open(image_path, "wb") as f:
+            f.write(contents)
+        result = tesseract_ocr(image_path)
+        os.remove(image_path)
+
     return result
 
 
 @app.post("/llm/extract")
-async def extract_data_llm(file: UploadFile = File(...)):
-    file.filename = f"{uuid.uuid4()}.jpg"
+async def extract_data_llm(file: UploadFile = File(...), instructions: str = Form(None)):
     contents = await file.read()
+    file_ext = file.filename.split('.')[-1].lower()
+    result = {}
 
-    # Save uploaded image
-    file_path = os.path.join(IMAGEDIR, file.filename)
-    with open(file_path, "wb") as f:
-        f.write(contents)
+    if file_ext == 'pdf':
+        images = convert_from_bytes(contents)
+        for i, img in enumerate(images):
+            image_path = os.path.join(IMAGEDIR, f"{uuid.uuid4()}.jpg")
+            img.save(image_path, "JPEG")
+            ocr_result = llm_ocr(image_path, instructions)
+            result[f"page{i}"] = ocr_result
+            os.remove(image_path)
 
-    # Perform OCR
-    result = llm_ocr(file_path)
+    else:
+        image_path = os.path.join(IMAGEDIR, f"{uuid.uuid4()}.jpg")
+        with open(image_path, "wb") as f:
+            f.write(contents)
+        result = llm_ocr(image_path, instructions)
+        os.remove(image_path)
 
-    # Delete Image
-    os.remove(file_path)
     return result
 
 
