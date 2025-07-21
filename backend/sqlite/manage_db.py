@@ -8,7 +8,7 @@ from sqlalchemy import Column, Integer, String, create_engine, Date, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
-# SQLAlchemy model
+
 Base = declarative_base()
 
 
@@ -19,7 +19,7 @@ class DBinvoice(Base):
     amount = Column(Float, nullable=False)
 
 
-# Pydantic models
+
 class Invoice(BaseModel):
     invoice_number: str
     invoice_date: date
