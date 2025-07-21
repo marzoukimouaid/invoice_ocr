@@ -1,4 +1,4 @@
-````markdown
+
 # JSONExtract: Invoice Data Extractor
 
 JSONExtract is a powerful tool designed to automate the extraction of key information from invoice documents. It takes invoices in image or PDF format and returns structured data, such as invoice numbers, dates, and total amounts, in a clean and ready-to-use JSON format.
@@ -122,4 +122,3 @@ The API is available at `http://localhost:8000` and provides the following endpo
 * `GET /invoices/`: Retrieve a list of all saved invoices.
 * `DELETE /invoices/{invoice_id}`: Delete a specific invoice from the database by its ID.
 
-````
