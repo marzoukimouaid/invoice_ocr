@@ -18,12 +18,23 @@ def create_custom_model():
         )
 
 
-def llm_ocr(img, instructions):
+def llm_ocr(img):
     model_names = [i['model'] for i in ollama.list()['models']]
-    if instructions:
-        content = f"Extract only the following data from the image: {instructions}. Return only valid JSON without markdown."
-    else:
-        content = """Extract all useful data from this invoice image and return it in valid JSON format. Do not include any explanation or markdown."""
+    content = """
+        From this invoice image, extract only the following fields:
+    
+    - invoice_number: the invoice number (string or alphanumeric identifier)
+    - invoice_date: the date of the invoice in format YYYY-MM-DD
+    - amount: the total amount to be paid as a number (no currency symbols)
+    
+    Return the output as raw JSON without markdown or explanation, like this:
+    
+    {
+      "invoice_number": "INV-00123",
+      "invoice_date": "2023-12-15",
+      "amount": 1450.75
+    }
+    """
 
     if CUSTOM_MODEL not in model_names:
         create_custom_model()
@@ -41,7 +52,10 @@ def llm_ocr(img, instructions):
     cleaned_response = response['message']['content'].strip()
     match = re.search(r"```json\s*(\{.*?\})\s*```", cleaned_response, re.DOTALL)
     print(cleaned_response)
-    return json.loads(cleaned_response)
+    try:
+        return json.loads(cleaned_response)
+    except:
+        return json.loads("Error during extraction")
     # if match:
     #     json_str = match.group(1)
     #     try:

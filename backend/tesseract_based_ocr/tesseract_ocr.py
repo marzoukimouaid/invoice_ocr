@@ -20,25 +20,36 @@ def image_to_text(filename):
 
 def text_to_json(ocr_result):
     nlp = spacy.load("en_core_web_sm")
-    sents = nlp(ocr_result)
-    data_list = []
-    for sent in sents:
-        tokens = sent.text.split(" ")
-        for i in range(len(tokens)):
-            var = tokens[i]
-            data = {}
+    doc = nlp(ocr_result)
 
-            if re.match(r"#(\d+)", str(var)):
-                data.update({"Invoice Number": str(var)})
-            elif re.match(r'^(0[1-9]|[12][0-9]|3[01]).(0[1-9]|1[012]).(19|20)\d\d$', str(var)):
-                data.update({"Date of Invoice": str(var)})
-            elif re.match(r'\d{1,6}', str(var)):
-                data.update({"Amount": str(var)})
+    invoice_number = None
+    invoice_date = None
+    amount = None
 
-            if data != {}:
-                data_list.append(data)
+    full_text = doc.text
 
-    return data_list
+    inv_match = re.search(r"(?:INV[-\s]?|#)?(\w{3,}-?\d+)", full_text, re.IGNORECASE)
+    if inv_match:
+        invoice_number = inv_match.group(1)
+
+    date_match = re.search(r"\b(20\d{2}[-/\.](0?[1-9]|1[0-2])[-/\.](0?[1-9]|[12][0-9]|3[01]))\b", full_text)
+    if date_match:
+        invoice_date = date_match.group(1)
+
+    amount_matches = re.findall(r"\b\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d{2})\b", full_text)
+    if amount_matches:
+        # Clean and convert last (or largest) match
+        cleaned_amount = amount_matches[-1].replace(',', '').replace(' ', '')
+        try:
+            amount = float(cleaned_amount)
+        except:
+            pass
+
+    return {
+        "invoice_number": invoice_number or "",
+        "invoice_date": invoice_date or "",
+        "amount": amount or 0.0
+    }
 
 
 
