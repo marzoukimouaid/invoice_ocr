@@ -64,8 +64,8 @@ Ensure you have the following installed on your system and added to your system'
 ### Backend Setup
 1.  **Clone the repository**:
     ```bash
-    git clone <your-repo-url>
-    cd <your-repo-directory>
+    git clone (https://github.com/marzoukimouaid/invoice_ocr/)
+    cd invoice_ocr
     ```
 2.  **Set up a Python virtual environment**:
     ```bash
